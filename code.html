@@ -1,0 +1,739 @@
+<!DOCTYPE html>
+<html lang="th">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>ระบบบริหารจัดการร้านคาเฟ่ | CaféFlow</title>
+    
+    <!-- Google Fonts & Font Awesome Icons -->
+    <link rel="preconnect" href="https://fonts.googleapis.com">
+    <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
+    <link href="https://fonts.googleapis.com/css2?family=Sarabun:wght@400;500;700&display=swap" rel="stylesheet">
+    <link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.4.0/css/all.min.css">
+    
+    <!-- Chart.js for beautiful charts -->
+    <script src="https://cdn.jsdelivr.net/npm/chart.js"></script>
+
+    <style>
+        /* --- GLOBAL STYLES & VARIABLES --- */
+        :root {
+            --primary-color: #A47551; /* Warm Coffee Brown */
+            --secondary-color: #F3E9DD; /* Light Beige */
+            --dark-color: #3A3A3A; /* Dark Gray for Text */
+            --accent-color: #51A47F; /* Mint Green for actions */
+            --white-color: #FFFFFF;
+            --light-gray: #f4f4f4;
+            --border-color: #e0e0e0;
+            --shadow: 0 4px 15px rgba(0, 0, 0, 0.08);
+        }
+
+        * {
+            margin: 0;
+            padding: 0;
+            box-sizing: border-box;
+        }
+
+        body {
+            font-family: 'Sarabun', sans-serif;
+            background-color: var(--light-gray);
+            color: var(--dark-color);
+            display: flex;
+            height: 100vh;
+            overflow: hidden;
+        }
+
+        /* --- LAYOUT: SIDEBAR & MAIN CONTENT --- */
+        .sidebar {
+            width: 260px;
+            background-color: var(--white-color);
+            padding: 2rem 1.5rem;
+            display: flex;
+            flex-direction: column;
+            border-right: 1px solid var(--border-color);
+        }
+
+        .sidebar .logo {
+            display: flex;
+            align-items: center;
+            margin-bottom: 3rem;
+        }
+
+        .sidebar .logo i {
+            font-size: 2.5rem;
+            color: var(--primary-color);
+        }
+
+        .sidebar .logo h1 {
+            font-size: 1.8rem;
+            margin-left: 10px;
+            color: var(--primary-color);
+        }
+        
+        .sidebar .nav-menu a {
+            display: flex;
+            align-items: center;
+            padding: 1rem;
+            margin-bottom: 0.5rem;
+            border-radius: 8px;
+            color: #555;
+            text-decoration: none;
+            transition: background-color 0.3s, color 0.3s;
+        }
+
+        .sidebar .nav-menu a i {
+            margin-right: 15px;
+            width: 20px;
+            text-align: center;
+            font-size: 1.1rem;
+        }
+
+        .sidebar .nav-menu a:hover {
+            background-color: var(--secondary-color);
+            color: var(--primary-color);
+        }
+
+        .sidebar .nav-menu a.active {
+            background-color: var(--primary-color);
+            color: var(--white-color);
+            font-weight: 700;
+        }
+
+        .main-content {
+            flex: 1;
+            padding: 2rem 2.5rem;
+            overflow-y: auto;
+        }
+
+        .page-header {
+            margin-bottom: 2rem;
+        }
+        
+        .page-header h2 {
+            font-size: 2rem;
+            font-weight: 700;
+        }
+        
+        .page-header p {
+            color: #777;
+        }
+
+        .page-content {
+            display: none;
+        }
+
+        .page-content.active {
+            display: block;
+            animation: fadeIn 0.5s ease-in-out;
+        }
+
+        @keyframes fadeIn {
+            from { opacity: 0; transform: translateY(10px); }
+            to { opacity: 1; transform: translateY(0); }
+        }
+
+        /* --- GENERIC COMPONENTS --- */
+        .card {
+            background-color: var(--white-color);
+            border-radius: 12px;
+            padding: 1.5rem;
+            box-shadow: var(--shadow);
+        }
+
+        .grid-container {
+            display: grid;
+            gap: 1.5rem;
+        }
+
+        .btn {
+            padding: 0.75rem 1.5rem;
+            border: none;
+            border-radius: 8px;
+            cursor: pointer;
+            font-size: 1rem;
+            font-family: 'Sarabun', sans-serif;
+            font-weight: 500;
+            transition: all 0.3s ease;
+        }
+
+        .btn-primary {
+            background-color: var(--accent-color);
+            color: var(--white-color);
+        }
+
+        .btn-primary:hover {
+            background-color: #438c6b;
+            transform: translateY(-2px);
+        }
+
+        .btn-secondary {
+            background-color: var(--secondary-color);
+            color: var(--primary-color);
+        }
+
+        /* --- DASHBOARD SPECIFIC STYLES --- */
+        .dashboard-grid {
+            grid-template-columns: repeat(auto-fit, minmax(250px, 1fr));
+        }
+
+        .summary-card {
+            display: flex;
+            align-items: center;
+        }
+
+        .summary-card i {
+            font-size: 2.5rem;
+            padding: 1rem;
+            border-radius: 50%;
+            margin-right: 1rem;
+        }
+        
+        .summary-card .info h3 { font-size: 2rem; }
+        .summary-card .info p { color: #888; }
+        
+        .sc-revenue i { color: #2ecc71; background-color: #eafaf1; }
+        .sc-orders i { color: #3498db; background-color: #eaf3fa; }
+        .sc-avg i { color: #e67e22; background-color: #fdf2e8; }
+        .sc-profit i { color: #9b59b6; background-color: #f5eff8; }
+        
+        .chart-card {
+             grid-column: 1 / -1; /* Span full width */
+        }
+        
+        .list-card ul {
+            list-style: none;
+        }
+        .list-card li {
+            display: flex;
+            justify-content: space-between;
+            align-items: center;
+            padding: 0.8rem 0;
+            border-bottom: 1px solid var(--border-color);
+        }
+        .list-card li:last-child {
+            border-bottom: none;
+        }
+        .list-card .item-name {
+            font-weight: 500;
+        }
+        .list-card .item-count {
+            background-color: var(--secondary-color);
+            color: var(--primary-color);
+            padding: 0.2rem 0.6rem;
+            border-radius: 5px;
+            font-weight: 700;
+        }
+        .list-card .low-stock {
+            color: #e74c3c;
+            font-weight: 700;
+        }
+        
+        /* --- MENU & INVENTORY & EMPLOYEE STYLES --- */
+        .item-grid {
+            grid-template-columns: repeat(auto-fit, minmax(280px, 1fr));
+        }
+
+        .menu-card, .employee-card {
+            text-align: center;
+        }
+
+        .menu-card img, .employee-card img {
+            width: 120px;
+            height: 120px;
+            border-radius: 50%;
+            object-fit: cover;
+            margin-bottom: 1rem;
+            border: 4px solid var(--secondary-color);
+        }
+        
+        .menu-card h4, .employee-card h4 {
+            font-size: 1.2rem;
+            margin-bottom: 0.25rem;
+        }
+        
+        .menu-card .price {
+            font-size: 1.5rem;
+            font-weight: 700;
+            color: var(--primary-color);
+            margin-bottom: 1rem;
+        }
+        
+        .employee-card .role {
+            color: #777;
+            margin-bottom: 1rem;
+        }
+        
+        table {
+            width: 100%;
+            border-collapse: collapse;
+            text-align: left;
+        }
+        
+        thead th {
+            padding: 1rem;
+            background-color: var(--secondary-color);
+            font-weight: 700;
+            color: var(--primary-color);
+        }
+        
+        tbody td {
+            padding: 1rem;
+            border-bottom: 1px solid var(--border-color);
+        }
+        
+        tbody tr:hover {
+            background-color: #f9f9f9;
+        }
+
+        .stock-status {
+            padding: 0.3rem 0.8rem;
+            border-radius: 20px;
+            font-weight: 500;
+            text-align: center;
+        }
+        .status-ok { background-color: #eafaf1; color: #2ecc71; }
+        .status-low { background-color: #fef5e7; color: #f39c12; }
+        .status-out { background-color: #fbe6e4; color: #e74c3c; }
+
+        /* --- MODAL STYLES --- */
+        .modal {
+            display: none; 
+            position: fixed; 
+            z-index: 1000;
+            left: 0;
+            top: 0;
+            width: 100%;
+            height: 100%;
+            overflow: auto;
+            background-color: rgba(0,0,0,0.5);
+            animation: fadeIn 0.3s;
+        }
+
+        .modal-content {
+            background-color: #fefefe;
+            margin: 10% auto;
+            padding: 2rem;
+            border: 1px solid #888;
+            width: 80%;
+            max-width: 500px;
+            border-radius: 12px;
+            box-shadow: 0 5px 25px rgba(0,0,0,0.2);
+            animation: slideIn 0.4s ease-out;
+        }
+        
+        @keyframes slideIn {
+            from { transform: translateY(-50px); }
+            to { transform: translateY(0); }
+        }
+
+        .modal-header {
+            display: flex;
+            justify-content: space-between;
+            align-items: center;
+            border-bottom: 1px solid var(--border-color);
+            padding-bottom: 1rem;
+            margin-bottom: 1rem;
+        }
+
+        .modal-header h3 {
+            font-size: 1.5rem;
+        }
+        
+        .close-btn {
+            color: #aaa;
+            font-size: 28px;
+            font-weight: bold;
+            cursor: pointer;
+        }
+
+        .close-btn:hover,
+        .close-btn:focus {
+            color: black;
+        }
+        
+        .form-group {
+            margin-bottom: 1rem;
+        }
+        .form-group label {
+            display: block;
+            margin-bottom: 0.5rem;
+            font-weight: 500;
+        }
+        .form-group input, .form-group select {
+            width: 100%;
+            padding: 0.75rem;
+            border: 1px solid var(--border-color);
+            border-radius: 8px;
+            font-family: 'Sarabun', sans-serif;
+        }
+        .modal-footer {
+            text-align: right;
+            margin-top: 2rem;
+        }
+
+    </style>
+</head>
+<body>
+
+    <!-- ======================== SIDEBAR NAVIGATION ======================== -->
+    <nav class="sidebar">
+        <div class="logo">
+            <i class="fa-solid fa-mug-saucer"></i>
+            <h1>CaféFlow</h1>
+        </div>
+
+        <div class="nav-menu">
+            <a href="#" class="nav-link active" data-target="dashboard">
+                <i class="fa-solid fa-chart-pie"></i> แดชบอร์ด
+            </a>
+            <a href="#" class="nav-link" data-target="menu">
+                <i class="fa-solid fa-book-open"></i> จัดการเมนู
+            </a>
+            <a href="#" class="nav-link" data-target="inventory">
+                <i class="fa-solid fa-boxes-stacked"></i> จัดการสต็อก
+            </a>
+            <a href="#" class="nav-link" data-target="reports">
+                <i class="fa-solid fa-file-invoice-dollar"></i> รายงาน
+            </a>
+            <a href="#" class="nav-link" data-target="employees">
+                <i class="fa-solid fa-users"></i> จัดการพนักงาน
+            </a>
+        </div>
+    </nav>
+
+    <!-- ======================== MAIN CONTENT AREA ======================== -->
+    <main class="main-content">
+
+        <!-- ---------- DASHBOARD PAGE ---------- -->
+        <section id="dashboard" class="page-content active">
+            <div class="page-header">
+                <h2>แดชบอร์ด</h2>
+                <p>สรุปภาพรวมทั้งหมดของร้านคุณในวันนี้</p>
+            </div>
+            
+            <div class="grid-container dashboard-grid">
+                <div class="card summary-card sc-revenue">
+                    <i class="fa-solid fa-baht-sign"></i>
+                    <div class="info"><h3>8,520</h3><p>ยอดขายวันนี้</p></div>
+                </div>
+                <div class="card summary-card sc-orders">
+                    <i class="fa-solid fa-receipt"></i>
+                    <div class="info"><h3>98</h3><p>จำนวนบิล</p></div>
+                </div>
+                <div class="card summary-card sc-avg">
+                    <i class="fa-solid fa-chart-line"></i>
+                    <div class="info"><h3>86.94</h3><p>ยอดขายเฉลี่ย/บิล</p></div>
+                </div>
+                <div class="card summary-card sc-profit">
+                    <i class="fa-solid fa-sack-dollar"></i>
+                    <div class="info"><h3>4,150</h3><p>กำไรเบื้องต้น</p></div>
+                </div>
+
+                <div class="card chart-card">
+                    <canvas id="salesChart"></canvas>
+                </div>
+
+                <div class="card list-card">
+                    <h4><i class="fa-solid fa-star"></i> เมนูขายดี 5 อันดับ</h4>
+                    <ul>
+                        <li><span class="item-name">ไอซ์ อเมริกาโน่</span> <span class="item-count">35</span></li>
+                        <li><span class="item-name">ลาเต้ร้อน</span> <span class="item-count">24</span></li>
+                        <li><span class="item-name">ครัวซองต์เนยสด</span> <span class="item-count">18</span></li>
+                        <li><span class="item-name">ชาไทย</span> <span class="item-count">15</span></li>
+                        <li><span class="item-name">คาปูชิโน่เย็น</span> <span class="item-count">12</span></li>
+                    </ul>
+                </div>
+
+                <div class="card list-card">
+                    <h4><i class="fa-solid fa-triangle-exclamation"></i> สต็อกใกล้หมด</h4>
+                    <ul>
+                        <li><span class="item-name">เมล็ดกาแฟ House Blend</span> <span class="item-count low-stock">เหลือ 1.2 kg</span></li>
+                        <li><span class="item-name">นมโอ๊ต</span> <span class="item-count low-stock">เหลือ 2 กล่อง</span></li>
+                        <li><span class="item-name">ไซรัปคาราเมล</span> <span class="item-count low-stock">เหลือ 1 ขวด</span></li>
+                    </ul>
+                </div>
+            </div>
+        </section>
+
+        <!-- ---------- MENU PAGE ---------- -->
+        <section id="menu" class="page-content">
+            <div class="page-header" style="display:flex; justify-content: space-between; align-items: center;">
+                <div>
+                    <h2>จัดการเมนู</h2>
+                    <p>เพิ่ม ลบ และแก้ไขรายการเครื่องดื่มและเบเกอรี่ของร้าน</p>
+                </div>
+                <button class="btn btn-primary" id="addMenuBtn"><i class="fa-solid fa-plus"></i> เพิ่มเมนูใหม่</button>
+            </div>
+            
+            <div class="grid-container item-grid">
+                <div class="card menu-card">
+                    <img src="https://images.unsplash.com/photo-1572442388796-11668a653479?crop=entropy&cs=tinysrgb&fit=max&fm=jpg&ixid=MnwxfDB8MXxyYW5kb218MHx8aWNlJTIwYW1lcmljYW5vfHx8fHx8MTY4MzkzMDQxMQ&ixlib=rb-4.0.3&q=80&utm_campaign=api-credit&utm_medium=referral&utm_source=unsplash_source&w=1080" alt="Americano">
+                    <h4>ไอซ์ อเมริกาโน่</h4>
+                    <p class="price">65 ฿</p>
+                    <button class="btn btn-secondary">แก้ไข</button>
+                </div>
+                <div class="card menu-card">
+                    <img src="https://images.unsplash.com/photo-1541167760496-1628856ab772?crop=entropy&cs=tinysrgb&fit=max&fm=jpg&ixid=MnwxfDB8MXxyYW5kb218MHx8bGF0dGV8fHx8fHwxNjgzOTMwNDQy&ixlib=rb-4.0.3&q=80&utm_campaign=api-credit&utm_medium=referral&utm_source=unsplash_source&w=1080" alt="Latte">
+                    <h4>ลาเต้ร้อน</h4>
+                    <p class="price">75 ฿</p>
+                    <button class="btn btn-secondary">แก้ไข</button>
+                </div>
+                <div class="card menu-card">
+                    <img src="https://images.unsplash.com/photo-1555507036-ab1f4038808a?crop=entropy&cs=tinysrgb&fit=max&fm=jpg&ixid=MnwxfDB8MXxyYW5kb218MHx8Y3JvaXNzYW50fHx8fHx8MTY4MzkzMDUyNw&ixlib=rb-4.0.3&q=80&utm_campaign=api-credit&utm_medium=referral&utm_source=unsplash_source&w=1080" alt="Croissant">
+                    <h4>ครัวซองต์เนยสด</h4>
+                    <p class="price">85 ฿</p>
+                    <button class="btn btn-secondary">แก้ไข</button>
+                </div>
+                 <div class="card menu-card">
+                    <img src="https://images.unsplash.com/photo-1579887829622-f6e378a514cb?crop=entropy&cs=tinysrgb&fit=max&fm=jpg&ixid=MnwxfDB8MXxyYW5kb218MHx8dGhhaSUyMHRlYXx8fHx8fDE2ODM5MzA2MDc&ixlib=rb-4.0.3&q=80&utm_campaign=api-credit&utm_medium=referral&utm_source=unsplash_source&w=1080" alt="Thai Tea">
+                    <h4>ชาไทย</h4>
+                    <p class="price">70 ฿</p>
+                    <button class="btn btn-secondary">แก้ไข</button>
+                </div>
+            </div>
+        </section>
+
+        <!-- ---------- INVENTORY PAGE ---------- -->
+        <section id="inventory" class="page-content">
+            <div class="page-header">
+                <h2>จัดการสต็อก</h2>
+                <p>ตรวจสอบและจัดการวัตถุดิบคงคลังทั้งหมด</p>
+            </div>
+            <div class="card">
+                <table>
+                    <thead>
+                        <tr>
+                            <th>ชื่อวัตถุดิบ</th>
+                            <th>หมวดหมู่</th>
+                            <th>จำนวนคงเหลือ</th>
+                            <th>หน่วยนับ</th>
+                            <th>สถานะ</th>
+                        </tr>
+                    </thead>
+                    <tbody>
+                        <tr>
+                            <td>เมล็ดกาแฟ House Blend</td>
+                            <td>เมล็ดกาแฟ</td>
+                            <td>1.2</td>
+                            <td>กิโลกรัม</td>
+                            <td><span class="stock-status status-low">ใกล้หมด</span></td>
+                        </tr>
+                         <tr>
+                            <td>เมล็ดกาแฟ Ethiopia</td>
+                            <td>เมล็ดกาแฟ</td>
+                            <td>5.5</td>
+                            <td>กิโลกรัม</td>
+                            <td><span class="stock-status status-ok">ปกติ</span></td>
+                        </tr>
+                         <tr>
+                            <td>นมวัว</td>
+                            <td>นม</td>
+                            <td>12</td>
+                            <td>กล่อง</td>
+                            <td><span class="stock-status status-ok">ปกติ</span></td>
+                        </tr>
+                         <tr>
+                            <td>นมโอ๊ต</td>
+                            <td>นม</td>
+                            <td>2</td>
+                            <td>กล่อง</td>
+                            <td><span class="stock-status status-low">ใกล้หมด</span></td>
+                        </tr>
+                         <tr>
+                            <td>ไซรัปวานิลลา</td>
+                            <td>ไซรัป</td>
+                            <td>6</td>
+                            <td>ขวด</td>
+                            <td><span class="stock-status status-ok">ปกติ</span></td>
+                        </tr>
+                         <tr>
+                            <td>ไซรัปคาราเมล</td>
+                            <td>ไซรัป</td>
+                            <td>1</td>
+                            <td>ขวด</td>
+                            <td><span class="stock-status status-out">หมด</span></td>
+                        </tr>
+                    </tbody>
+                </table>
+            </div>
+        </section>
+
+        <!-- ---------- REPORTS PAGE ---------- -->
+        <section id="reports" class="page-content">
+            <div class="page-header">
+                <h2>รายงาน</h2>
+                <p>วิเคราะห์ข้อมูลเชิงลึกเพื่อการเติบโตของธุรกิจ</p>
+            </div>
+            <div class="card">
+                <h3>รายงานยอดขายรายวัน (7 วันย้อนหลัง)</h3>
+                <canvas id="reportsChart"></canvas>
+            </div>
+        </section>
+
+        <!-- ---------- EMPLOYEES PAGE ---------- -->
+        <section id="employees" class="page-content">
+            <div class="page-header" style="display:flex; justify-content: space-between; align-items: center;">
+                 <div>
+                    <h2>จัดการพนักงานและเงินเดือน</h2>
+                    <p>ดูแลข้อมูล เวลาทำงาน และค่าตอบแทนของพนักงาน</p>
+                </div>
+                <button class="btn btn-primary" id="payrollBtn"><i class="fa-solid fa-calculator"></i> คำนวณเงินเดือน</button>
+            </div>
+            <div class="grid-container item-grid">
+                 <div class="card employee-card">
+                    <img src="https://images.unsplash.com/photo-1507003211169-0a1dd7228f2d?crop=entropy&cs=tinysrgb&fit=max&fm=jpg&ixid=MnwxfDB8MXxyYW5kb218MHx8bWFsZSUyMHBvcnRyYWl0fHx8fHx8MTY4MzkzMDk2NA&ixlib=rb-4.0.3&q=80&utm_campaign=api-credit&utm_medium=referral&utm_source=unsplash_source&w=1080" alt="Employee">
+                    <h4>สมชาย ใจดี</h4>
+                    <p class="role">ผู้จัดการ</p>
+                    <button class="btn btn-secondary">ดูข้อมูล</button>
+                </div>
+                <div class="card employee-card">
+                    <img src="https://images.unsplash.com/photo-1494790108377-be9c29b29330?crop=entropy&cs=tinysrgb&fit=max&fm=jpg&ixid=MnwxfDB8MXxyYW5kb218MHx8ZmVtYWxlJTIwcG9ydHJhaXR8fHx8fHwxNjgzOTMxMDA4&ixlib=rb-4.0.3&q=80&utm_campaign=api-credit&utm_medium=referral&utm_source=unsplash_source&w=1080" alt="Employee">
+                    <h4>อารยา รักงาน</h4>
+                    <p class="role">บาริสต้า</p>
+                    <button class="btn btn-secondary">ดูข้อมูล</button>
+                </div>
+                 <div class="card employee-card">
+                    <img src="https://images.unsplash.com/photo-1614283232388-742943564b17?crop=entropy&cs=tinysrgb&fit=max&fm=jpg&ixid=MnwxfDB8MXxyYW5kb218MHx8ZmVtYWxlJTIwcG9ydHJhaXR8fHx8fHwxNjgzOTMxMjU2&ixlib=rb-4.0.3&q=80&utm_campaign=api-credit&utm_medium=referral&utm_source=unsplash_source&w=1080" alt="Employee">
+                    <h4>นารี ศรีสุข</h4>
+                    <p class="role">แคชเชียร์</p>
+                    <button class="btn btn-secondary">ดูข้อมูล</button>
+                </div>
+            </div>
+        </section>
+
+    </main>
+    
+    <!-- ======================== MODAL POP-UP ======================== -->
+    <div id="myModal" class="modal">
+        <div class="modal-content">
+            <div class="modal-header">
+                <h3 id="modalTitle">เพิ่มรายการเมนูใหม่</h3>
+                <span class="close-btn">&times;</span>
+            </div>
+            <div class="modal-body">
+                <div class="form-group">
+                    <label for="itemName">ชื่อเมนู</label>
+                    <input type="text" id="itemName" placeholder="เช่น ไอซ์ อเมริกาโน่">
+                </div>
+                 <div class="form-group">
+                    <label for="itemPrice">ราคา</label>
+                    <input type="number" id="itemPrice" placeholder="65">
+                </div>
+                 <div class="form-group">
+                    <label for="itemCategory">หมวดหมู่</label>
+                    <select id="itemCategory">
+                        <option>กาแฟ</option>
+                        <option>เครื่องดื่มอื่นๆ</option>
+                        <option>เบเกอรี่</option>
+                    </select>
+                </div>
+            </div>
+            <div class="modal-footer">
+                <button class="btn btn-secondary" id="closeModalBtn">ยกเลิก</button>
+                <button class="btn btn-primary">บันทึก</button>
+            </div>
+        </div>
+    </div>
+
+
+    <script>
+        document.addEventListener('DOMContentLoaded', function() {
+            // --- NAVIGATION LOGIC ---
+            const navLinks = document.querySelectorAll('.nav-link');
+            const pageContents = document.querySelectorAll('.page-content');
+
+            navLinks.forEach(link => {
+                link.addEventListener('click', function(e) {
+                    e.preventDefault();
+                    
+                    // Remove active class from all
+                    navLinks.forEach(l => l.classList.remove('active'));
+                    pageContents.forEach(p => p.classList.remove('active'));
+                    
+                    // Add active class to clicked link and its target content
+                    this.classList.add('active');
+                    const target = this.getAttribute('data-target');
+                    document.getElementById(target).classList.add('active');
+                });
+            });
+
+            // --- CHART.JS IMPLEMENTATION ---
+            // Dashboard Chart
+            const salesCtx = document.getElementById('salesChart').getContext('2d');
+            new Chart(salesCtx, {
+                type: 'line',
+                data: {
+                    labels: ['08:00', '10:00', '12:00', '14:00', '16:00', '18:00'],
+                    datasets: [{
+                        label: 'ยอดขายรายชั่วโมง',
+                        data: [1200, 1900, 3000, 2500, 2200, 1800],
+                        backgroundColor: 'rgba(164, 117, 81, 0.2)',
+                        borderColor: 'rgba(164, 117, 81, 1)',
+                        borderWidth: 2,
+                        tension: 0.4,
+                        fill: true,
+                    }]
+                },
+                options: {
+                    responsive: true,
+                    plugins: { legend: { display: false }},
+                    scales: {
+                        y: { beginAtZero: true }
+                    }
+                }
+            });
+            
+            // Reports Chart
+             const reportsCtx = document.getElementById('reportsChart').getContext('2d');
+             new Chart(reportsCtx, {
+                type: 'bar',
+                data: {
+                    labels: ['จันทร์', 'อังคาร', 'พุธ', 'พฤหัส', 'ศุกร์', 'เสาร์', 'อาทิตย์'],
+                    datasets: [{
+                        label: 'ยอดขาย',
+                        data: [7500, 8100, 7900, 9200, 9800, 12500, 11800],
+                        backgroundColor: '#A47551',
+                    }, {
+                        label: 'กำไร',
+                        data: [3800, 4200, 4000, 4800, 5100, 6800, 6500],
+                        backgroundColor: '#51A47F',
+                    }]
+                },
+                options: {
+                    responsive: true,
+                     scales: {
+                        y: { beginAtZero: true }
+                    }
+                }
+            });
+
+            // --- MODAL LOGIC ---
+            const modal = document.getElementById("myModal");
+            const addMenuBtn = document.getElementById("addMenuBtn");
+            const closeModalBtns = document.querySelectorAll(".close-btn, #closeModalBtn");
+
+            addMenuBtn.onclick = function() {
+                modal.style.display = "block";
+            }
+
+            closeModalBtns.forEach(btn => {
+                btn.onclick = function() {
+                    modal.style.display = "none";
+                }
+            });
+
+            window.onclick = function(event) {
+                if (event.target == modal) {
+                    modal.style.display = "none";
+                }
+            }
+
+            // --- PAYROLL BUTTON ALERT ---
+            const payrollBtn = document.getElementById("payrollBtn");
+            payrollBtn.onclick = function() {
+                alert("เริ่มต้นกระบวนการคำนวณเงินเดือน...\n(นี่คือตัวอย่างการทำงานของปุ่ม)");
+            }
+
+        });
+    </script>
+</body>
+</html>```
