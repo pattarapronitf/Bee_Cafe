@@ -1,0 +1,234 @@
+<!DOCTYPE html>
+<html lang="th">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>ระบบจัดการร้านคาเฟ่ - CafeManager</title>
+    <link rel="stylesheet" href="style.css">
+    <!-- Font Awesome for Icons -->
+    <link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.5.2/css/all.min.css">
+    <!-- Google Fonts -->
+    <link href="https://fonts.googleapis.com/css2?family=Sarabun:wght@300;400;500;700&display=swap" rel="stylesheet">
+</head>
+<body>
+
+    <!-- ===== Login Page ===== -->
+    <div id="login-page" class="login-container">
+        <div class="login-box">
+            <i class="fas fa-mug-hot login-icon"></i>
+            <h1>CafeManager</h1>
+            <p>กรุณาเข้าสู่ระบบเพื่อจัดการร้าน</p>
+            <form id="login-form">
+                <input type="text" placeholder="ชื่อผู้ใช้" required>
+                <input type="password" placeholder="รหัสผ่าน" required>
+                <button type="submit">เข้าสู่ระบบ</button>
+            </form>
+        </div>
+    </div>
+
+    <!-- ===== Main Application ===== -->
+    <div id="app" class="app-container hidden">
+        <!-- Sidebar Navigation -->
+        <nav class="sidebar">
+            <div class="sidebar-header">
+                <h3><i class="fas fa-mug-hot"></i> CafeManager</h3>
+            </div>
+            <ul class="sidebar-menu">
+                <li><a href="#" class="nav-link active" data-target="dashboard"><i class="fas fa-chart-pie"></i><span>ภาพรวม</span></a></li>
+                <li><a href="#" class="nav-link" data-target="pos"><i class="fas fa-cash-register"></i><span>หน้าร้าน (POS)</span></a></li>
+                <li><a href="#" class="nav-link" data-target="inventory"><i class="fas fa-boxes-stacked"></i><span>จัดการสต็อก</span></a></li>
+                <li><a href="#" class="nav-link" data-target="employees"><i class="fas fa-users"></i><span>จัดการพนักงาน</span></a></li>
+                <li><a href="#" id="logout-btn"><i class="fas fa-sign-out-alt"></i><span>ออกจากระบบ</span></a></li>
+            </ul>
+        </nav>
+
+        <!-- Main Content -->
+        <main class="main-content">
+            <!-- Dashboard Page -->
+            <section id="dashboard" class="page-content active">
+                <header class="page-header">
+                    <h1>ภาพรวมแดชบอร์ด</h1>
+                    <p>สรุปข้อมูลสำคัญของร้านในวันนี้</p>
+                </header>
+                <div class="dashboard-grid">
+                    <div class="stat-card">
+                        <i class="fas fa-baht-sign icon-blue"></i>
+                        <div class="stat-info">
+                            <h4>ยอดขายวันนี้</h4>
+                            <span>7,500.50 ฿</span>
+                        </div>
+                    </div>
+                    <div class="stat-card">
+                        <i class="fas fa-receipt icon-green"></i>
+                        <div class="stat-info">
+                            <h4>จำนวนออเดอร์</h4>
+                            <span>125</span>
+                        </div>
+                    </div>
+                    <div class="stat-card">
+                        <i class="fas fa-mug-saucer icon-orange"></i>
+                        <div class="stat-info">
+                            <h4>เมนูขายดี</h4>
+                            <span>ลาเต้เย็น</span>
+                        </div>
+                    </div>
+                    <div class="stat-card">
+                         <i class="fas fa-user-plus icon-purple"></i>
+                        <div class="stat-info">
+                            <h4>ลูกค้าใหม่</h4>
+                            <span>15 คน</span>
+                        </div>
+                    </div>
+                </div>
+                <div class="chart-container">
+                    <h3>กราฟยอดขาย 7 วันล่าสุด</h3>
+                    <canvas id="salesChart"></canvas>
+                </div>
+            </section>
+
+            <!-- POS Page -->
+            <section id="pos" class="page-content">
+                 <header class="page-header">
+                    <h1>หน้าร้าน (Point of Sale)</h1>
+                </header>
+                <div class="pos-layout">
+                    <div class="pos-menu">
+                        <h2>เลือกเมนู</h2>
+                        <div class="menu-grid">
+                            <div class="menu-item" data-name="เอสเพรสโซ่ร้อน" data-price="60">
+                                <img src="https://via.placeholder.com/150/61380B/FFFFFF?text=Espresso" alt="Espresso">
+                                <h4>เอสเพรสโซ่ร้อน</h4>
+                                <span>60.00 ฿</span>
+                            </div>
+                            <div class="menu-item" data-name="ลาเต้เย็น" data-price="75">
+                                <img src="https://via.placeholder.com/150/A47551/FFFFFF?text=Latte" alt="Latte">
+                                <h4>ลาเต้เย็น</h4>
+                                <span>75.00 ฿</span>
+                            </div>
+                            <div class="menu-item" data-name="คาปูชิโน่" data-price="70">
+                                <img src="https://via.placeholder.com/150/C19A6B/FFFFFF?text=Cappuccino" alt="Cappuccino">
+                                <h4>คาปูชิโน่</h4>
+                                <span>70.00 ฿</span>
+                            </div>
+                             <div class="menu-item" data-name="ชาเขียวมัทฉะ" data-price="80">
+                                <img src="https://via.placeholder.com/150/4B8B5A/FFFFFF?text=Matcha" alt="Matcha">
+                                <h4>ชาเขียวมัทฉะ</h4>
+                                <span>80.00 ฿</span>
+                            </div>
+                             <div class="menu-item" data-name="ครัวซองต์" data-price="55">
+                                <img src="https://via.placeholder.com/150/E6BF83/FFFFFF?text=Croissant" alt="Croissant">
+                                <h4>ครัวซองต์</h4>
+                                <span>55.00 ฿</span>
+                            </div>
+                        </div>
+                    </div>
+                    <div class="pos-order">
+                        <h2>รายการสั่งซื้อ</h2>
+                        <ul id="order-list" class="order-list">
+                            <!-- Order items will be added here by JavaScript -->
+                        </ul>
+                        <div class="order-total">
+                            <h3>ยอดรวม:</h3>
+                            <h3 id="total-price">0.00 ฿</h3>
+                        </div>
+                        <button class="btn-payment">ชำระเงิน</button>
+                    </div>
+                </div>
+            </section>
+
+            <!-- Inventory Page -->
+            <section id="inventory" class="page-content">
+                <header class="page-header">
+                    <h1>จัดการสต็อกสินค้า</h1>
+                    <button class="btn-primary"><i class="fas fa-plus"></i> เพิ่มรายการใหม่</button>
+                </header>
+                <div class="table-container">
+                    <table>
+                        <thead>
+                            <tr>
+                                <th>ชื่อวัตถุดิบ</th>
+                                <th>จำนวนคงเหลือ</th>
+                                <th>หน่วย</th>
+                                <th>สถานะ</th>
+                                <th>จัดการ</th>
+                            </tr>
+                        </thead>
+                        <tbody>
+                            <tr>
+                                <td>เมล็ดกาแฟคั่วกลาง</td>
+                                <td>5</td>
+                                <td>กก.</td>
+                                <td><span class="status status-ok">ปกติ</span></td>
+                                <td><button class="btn-action"><i class="fas fa-edit"></i></button></td>
+                            </tr>
+                             <tr>
+                                <td>นมสด</td>
+                                <td>2</td>
+                                <td>ลิตร</td>
+                                <td><span class="status status-low">ใกล้หมด</span></td>
+                                <td><button class="btn-action"><i class="fas fa-edit"></i></button></td>
+                            </tr>
+                            <tr>
+                                <td>ผงมัทฉะ</td>
+                                <td>0.5</td>
+                                <td>กก.</td>
+                                <td><span class="status status-ok">ปกติ</span></td>
+                                <td><button class="btn-action"><i class="fas fa-edit"></i></button></td>
+                            </tr>
+                            <tr>
+                                <td>คาราเมลไซรัป</td>
+                                <td>0.1</td>
+                                <td>ลิตร</td>
+                                <td><span class="status status-danger">หมด</span></td>
+                                <td><button class="btn-action"><i class="fas fa-edit"></i></button></td>
+                            </tr>
+                        </tbody>
+                    </table>
+                </div>
+            </section>
+            
+            <!-- Employee Page -->
+             <section id="employees" class="page-content">
+                <header class="page-header">
+                    <h1>จัดการข้อมูลพนักงาน</h1>
+                     <button class="btn-primary"><i class="fas fa-user-plus"></i> เพิ่มพนักงาน</button>
+                </header>
+                  <div class="table-container">
+                    <table>
+                        <thead>
+                            <tr>
+                                <th>ชื่อ-สกุล</th>
+                                <th>ตำแหน่ง</th>
+                                <th>เบอร์โทร</th>
+                                <th>สถานะ</th>
+                                <th>จัดการ</th>
+                            </tr>
+                        </thead>
+                        <tbody>
+                            <tr>
+                                <td>สมชาย ใจดี</td>
+                                <td>บาริสต้า</td>
+                                <td>081-234-5678</td>
+                                <td><span class="status status-ok">ทำงานอยู่</span></td>
+                                <td><button class="btn-action"><i class="fas fa-edit"></i></button></td>
+                            </tr>
+                             <tr>
+                                <td>สมหญิง รักงาน</td>
+                                <td>แคชเชียร์</td>
+                                <td>082-345-6789</td>
+                                <td><span class="status status-ok">ทำงานอยู่</span></td>
+                                <td><button class="btn-action"><i class="fas fa-edit"></i></button></td>
+                            </tr>
+                        </tbody>
+                    </table>
+                </div>
+            </section>
+
+        </main>
+    </div>
+    
+    <!-- Chart.js Library -->
+    <script src="https://cdn.jsdelivr.net/npm/chart.js"></script>
+    <script src="script.js"></script>
+</body>
+</html>
